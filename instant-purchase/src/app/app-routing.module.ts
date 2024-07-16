@@ -2,9 +2,8 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'instant-purchase', pathMatch: 'full' },
   {
-    path: 'instant-purchase',
+    path: '',
     loadChildren: () =>
       import('./instant-purchase/instant-purchase.module').then(
         (m) => m.InstantPurchaseModule,
