@@ -1,0 +1,235 @@
+<div class="purchase-container">
+  <div class="header padding-container">
+    <div class="image">
+      <img
+        (click)="backStep()"
+        *ngIf="currentStep !== Step.Receipt && !isShowPaymentProcessingModal"
+        src="/assets/images/instant-purchase/back.svg"
+        alt="Back"
+      />
+    </div>
+    <p class="title">{{ currentStep }}</p>
+    <div class="image">
+      <img
+        (click)="close()"
+        *ngIf="currentStep === Step.Receipt"
+        src="/assets/images/instant-purchase/close.svg"
+        alt="Close"
+      />
+    </div>
+  </div>
+  <div class="content">
+    <ng-container *ngIf="currentStep === Step.Collect">
+      <div class="basic-info">
+        <div class="padding-container">
+          <!-- <p>Payment address: <strong>{{buyerAddress}}</strong></p>
+          <button class="button" (click)="changeAddress()">Change address</button> -->
+          <div class="form-input">
+            <div class="different-address" (click)="expanded = !expanded">
+              <p>Send to different address</p>
+              <img
+                [ngClass]="{ rotate: expanded }"
+                src="/assets/images/arrow-down.svg"
+                alt="Arrow down"
+              />
+            </div>
+            <input
+              class="recipient-input"
+              *ngIf="expanded"
+              type="text"
+              [formControl]="inputRecipientForm"
+            />
+            <p *ngIf="isNotAnAddressOrDomain">Invalid address</p>
+          </div>
+        </div>
+      </div>
+      <ng-container *ngTemplateOutlet="artworkInfo"></ng-container>
+      <ng-container *ngIf="!(isPaymentExpired || isBidTimeout)">
+        <div class="padding-container price-info">
+          <p>
+            Price including transaction fees:
+            <strong
+              >${{
+                cardPriceIncludeFee || sale?.metadata?.equivalentPrices?.USD
+                  | number
+              }}</strong
+            >
+          </p>
+          <p>
+            Complete Payment In: <strong>{{ bidTimerCountdown }}</strong>
+          </p>
+        </div>
+      </ng-container>
+      <div class="buttons padding-container">
+        <div id="express-checkout-element"></div>
+        <button
+          [disabled]="isCreatingSale || isNotAnAddressOrDomain"
+          (click)="onSelectPaymentMethod(PaymentMethod.card)"
+          class="button"
+        >
+          {{
+            isCreatingSale && paymentMethod === PaymentMethod.card
+              ? "Loading..."
+              : "Pay with credit card"
+          }}
+        </button>
+        <button
+          [disabled]="isCreatingSale || isNotAnAddressOrDomain"
+          (click)="onSelectPaymentMethod(PaymentMethod.crypto)"
+          class="button"
+        >
+          {{
+            isCreatingSale && paymentMethod === PaymentMethod.crypto
+              ? "Loading..."
+              : "Pay with crypto"
+          }}
+        </button>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="currentStep === Step.Checkout">
+      <div class="timer-container padding-container">
+        <ng-container *ngIf="!(isPaymentExpired || isBidTimeout)">
+          <p>
+            Price including transaction fees:
+            <strong
+              >${{
+                cardPriceIncludeFee || sale?.metadata?.equivalentPrices?.USD
+                  | number
+              }}</strong
+            >
+          </p>
+          <p>
+            Complete Payment In: <strong>{{ bidTimerCountdown }}</strong>
+          </p>
+        </ng-container>
+        <ng-container *ngIf="isPaymentExpired || isBidTimeout">
+          <p>Purchase timed out.</p>
+          <p>The time limit for this purchase has expired.</p>
+        </ng-container>
+      </div>
+      <ng-container *ngIf="!(isPaymentExpired || isBidTimeout)">
+        <app-pay-with-card
+          content
+          [error]="cardErrorCode"
+          (checkoutStart)="onCCStartCheckout()"
+          (paymentMethodID)="createPlatformCardPayment($event)"
+          (cancelPurchasing)="cancelBid()"
+        ></app-pay-with-card>
+      </ng-container>
+    </ng-container>
+    <ng-container *ngIf="currentStep === Step.Receipt">
+      <div class="receipt padding-container">
+        <h5>Purchase successful!</h5>
+        <p>
+          Thank you for your purchase! We appreciate your business and hope you
+          enjoy your new product.
+        </p>
+        <p class="order-info">Order {{ sale?.id }}</p>
+      </div>
+      <ng-container *ngTemplateOutlet="artworkInfo"></ng-container>
+      <div class="buttons padding-container">
+        <button class="button" (click)="close()">View in collection</button>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<ng-template #artworkInfo>
+  <div class="purchase">
+    <div class="row"></div>
+    <div class="row padding-container">
+      <div class="column column-5">
+        <p>{{ series?.title }}</p>
+        <p>{{ series?.artist?.alias }}</p>
+      </div>
+      <div class="column">x{{ quantity }}</div>
+      <div class="column">
+        {{
+          price ? (price | customCurrency: series?.settings?.baseCurrency) : "-"
+        }}
+      </div>
+    </div>
+    <div class="row bold padding-container">
+      <div class="column column-5"></div>
+      <div class="column">Total</div>
+      <div class="column">
+        {{
+          price ? (price | customCurrency: series?.settings?.baseCurrency) : "-"
+        }}
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<div class="common-modal" *ngIf="isShowPaymentProcessingModal">
+  <div class="modal-background"></div>
+  <div class="main-space">
+    <div #paymentProcessingModal class="error-content">
+      <div class="loading-bar"></div>
+      <p>Payment processing....</p>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isShowError" class="common-modal">
+  <div class="modal-background" (click)="closeErrorModal()"></div>
+  <div class="main-space">
+    <div #errorModal class="error-content">
+      <img
+        src="assets/images/x-black.svg"
+        alt="Close"
+        class="close-button clickable"
+        (click)="closeErrorModal()"
+      />
+      <ng-container
+        *ngTemplateOutlet="
+          isDifferentPaymentMethod
+            ? differentPaymentMethod
+            : isBidTimeout
+              ? bidderTimeout
+              : defaultError
+        "
+      ></ng-container>
+    </div>
+  </div>
+</div>
+
+<ng-template #defaultError>
+  <div class="header-2-columns pr-100">
+    <p class="font-48-28" [innerHTML]="ErrorsMessage[errorCode]?.title"></p>
+  </div>
+  <div class="main-content">
+    <p
+      class="font-48-28"
+      [innerHTML]="ErrorsMessage[errorCode]?.message || errorCustomMessage"
+    ></p>
+  </div>
+</ng-template>
+
+<ng-template #differentPaymentMethod>
+  <div class="main-content">
+    <p *ngIf="bidTimerCountdown">
+      Complete Payment In: <strong>{{ bidTimerCountdown }}</strong>
+    </p>
+    <p>
+      The current sale is set up for crypto payments. Since you're using a
+      credit card, you can either wait for the session to time out or click the
+      "try again" button to proceed with your purchase.
+    </p>
+    <button
+      class="button"
+      (click)="onSelectPaymentMethod(PaymentMethod.crypto)"
+    >
+      Try Again
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #bidderTimeout>
+  <div class="main-content">
+    <p>Your purchase is timeout.</p>
+    <button class="button" (click)="createNewBid()">Try Again</button>
+  </div>
+</ng-template>
+
+<p>{{ anything | json }}</p>
