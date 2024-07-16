@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { APIService } from '@core/services/api.service';
 import * as moment from 'moment';
 import { environment } from '@environment';
-import { UserService } from '@core/services/user.service';
 import { hashOrderChecksum } from '@core/logic/checksum.logic';
 import {
   BidAskDetail,
@@ -38,10 +37,7 @@ export enum CryptoPurchaseState {
   providedIn: 'root',
 })
 export class TransactionService {
-  constructor(
-    private readonly apiService: APIService,
-    private readonly userService: UserService
-  ) {}
+  constructor(private readonly apiService: APIService) {}
 
   public async createShoppingBidOfArtwork(
     askID: string,
@@ -50,7 +46,7 @@ export class TransactionService {
     method: PaymentMethods,
     isEditionSale: boolean,
     web3Token?: string,
-    web3Address?: string
+    web3Address?: string,
   ): Promise<BidAskDetail> {
     const now = new Date();
     let headers: HttpHeaders = new HttpHeaders();
@@ -64,12 +60,12 @@ export class TransactionService {
       moment(now).isBefore(
         moment(exhibition.exhibitionStartAt).add(
           Number.parseFloat(environment.launchThresholdSeconds),
-          'seconds'
-        )
+          'seconds',
+        ),
       )
     ) {
       const code = await hashOrderChecksum(
-        this.userService.getMe().ID + (isEditionSale ? seriesID : askID)
+        web3Address + (isEditionSale ? seriesID : askID),
       );
       const payload = isEditionSale
         ? { seriesID, method, code }
@@ -78,7 +74,7 @@ export class TransactionService {
         this.apiService.post<BidAskDetail>('shoppings/bids', payload, {
           withCredentials: true,
           headers,
-        })
+        }),
       );
     }
 
@@ -87,27 +83,15 @@ export class TransactionService {
       this.apiService.post<BidAskDetail>('shoppings/bids', payload, {
         withCredentials: true,
         headers,
-      })
+      }),
     );
-  }
-
-  public async createSeriesBundleShoppingSale(
-    seriesID: string,
-    quantity: number,
-    saleType: SaleType
-  ) {
-    if (saleType === SaleType.seriesRandomBundle) {
-      return this.createSeriesRandomBundleShoppingSale(seriesID, quantity);
-    }
-
-    return this.createSeriesSequenceBundleShoppingSale(seriesID, quantity);
   }
 
   public async createSeriesRandomBundleShoppingSale(
     seriesID: string,
     quantity: number,
     web3Token?: string,
-    web3Address?: string
+    web3Address?: string,
   ) {
     let headers: HttpHeaders = new HttpHeaders();
     if (web3Token && web3Address) {
@@ -122,8 +106,8 @@ export class TransactionService {
         {
           headers,
           withCredentials: true,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -131,7 +115,7 @@ export class TransactionService {
     seriesID: string,
     quantity: number,
     web3Token?: string,
-    web3Address?: string
+    web3Address?: string,
   ) {
     let headers: HttpHeaders = new HttpHeaders();
     if (web3Token && web3Address) {
@@ -146,83 +130,15 @@ export class TransactionService {
         {
           headers,
           withCredentials: true,
-        }
-      )
-    );
-  }
-
-  public async cancelSeriesBundleShoppingSale(
-    askID: string,
-    saleType: SaleType
-  ) {
-    if (saleType === SaleType.seriesRandomBundle) {
-      return this.cancelSeriesRandomBundleShoppingSale(askID);
-    }
-
-    return this.cancelSeriesSequenceBundleShoppingSale(askID);
-  }
-
-  public async cancelSeriesRandomBundleShoppingSale(askID: string) {
-    return firstValueFrom(
-      this.apiService.patch(
-        `random-bundle-shopping/${askID}/cancellation`,
-        null,
-        {
-          withCredentials: true,
-        }
-      )
-    );
-  }
-
-  public async cancelSeriesSequenceBundleShoppingSale(askID: string) {
-    return firstValueFrom(
-      this.apiService.patch(
-        `sequence-bundle-shopping/${askID}/cancellation`,
-        null,
-        {
-          withCredentials: true,
-        }
-      )
-    );
-  }
-
-  public async getPurchasingSeriesBundleShoppingSale(
-    seriesID: string,
-    saleType: SaleType
-  ) {
-    if (saleType === SaleType.seriesRandomBundle) {
-      return this.getPurchasingSeriesRandomBundleShoppingSale(seriesID);
-    }
-
-    return this.getPurchasingSeriesSequenceBundleShoppingSale(seriesID);
-  }
-
-  public async getPurchasingSeriesRandomBundleShoppingSale(seriesID: string) {
-    return firstValueFrom(
-      this.apiService.get<SaleDetail>(
-        `random-bundle-shopping/active?seriesID=${seriesID}&includeAsk=true&includeBid=true&includePayment=true`,
-        {
-          withCredentials: true,
-        }
-      )
-    );
-  }
-
-  public async getPurchasingSeriesSequenceBundleShoppingSale(seriesID: string) {
-    return firstValueFrom(
-      this.apiService.get<SaleDetail>(
-        `sequence-bundle-shopping/active?seriesID=${seriesID}&includeAsk=true&includeBid=true&includePayment=true`,
-        {
-          withCredentials: true,
-        }
-      )
+        },
+      ),
     );
   }
 
   public async cancelBid(
     bidID: string,
     web3Token?: string,
-    web3Address?: string
+    web3Address?: string,
   ) {
     let headers: HttpHeaders = new HttpHeaders();
     if (web3Token && web3Address) {
@@ -234,7 +150,7 @@ export class TransactionService {
       this.apiService.post(`bids/${bidID}/cancellation`, null, {
         withCredentials: true,
         headers,
-      })
+      }),
     );
   }
 
@@ -242,7 +158,7 @@ export class TransactionService {
     return firstValueFrom(
       this.apiService.get<BidAskDetail>(`asks/${askID}`, {
         withCredentials: true,
-      })
+      }),
     );
   }
 
@@ -250,32 +166,7 @@ export class TransactionService {
     return firstValueFrom(
       this.apiService.get<EngAucBid>(`bids/${bidID}`, {
         withCredentials: true,
-      })
+      }),
     );
-  }
-
-  public canCancelSale(sale: SaleDetail): boolean {
-    // The following situation not allow to cancel sale:
-    // ask linked with a not expired sale
-    // ask linked with a sale under status processing, succeeded
-    // ask linked with an expired sale, sale linked with a bid and payment status is under processing, authorized or succeeded
-    if (sale) {
-      if (sale.status !== SaleStatus.submitted) {
-        return false;
-      }
-
-      const payment = (sale?.bid as BidAskDetail)?.payment;
-      if (
-        payment &&
-        (payment.source === PaymentMethods.crypto ||
-          payment.status !== PaymentStatus.failed)
-      ) {
-        return false;
-      }
-
-      return true;
-    }
-
-    return true;
   }
 }

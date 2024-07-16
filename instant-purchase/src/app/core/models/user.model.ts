@@ -166,23 +166,3 @@ interface VaultAddress {
   ethereum: string;
   tezos: string;
 }
-
-export class ReservedBalance {
-  bidID: string;
-  artworkIndex: number;
-  seriesTitle?: string;
-  artistName?: string;
-  exhibitionTitle: string;
-  exhibitionMaxArtwork: number;
-  saleType: BidAskType;
-  reservedAmount: number;
-  currency: string;
-}
-
-export class CreateArtistReq {
-  exhibitionID: string;
-  email: string;
-  alias?: string;
-  fullName?: string;
-  metadata?: UserMetadata;
-}

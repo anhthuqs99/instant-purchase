@@ -20,19 +20,6 @@ export interface InstantPurchaseParams {
 export class InstantPurchaseService {
   constructor(private apiService: APIService) {}
 
-  public createInstantPurchase(artworkID: string) {
-    return this.apiService.post('instant-purchase', { artworkID }, null);
-  }
-
-  public getInstantPurchase(instantPurchaseID: string) {
-    return firstValueFrom(
-      this.apiService.get<InstantPurchase>(
-        `instant-purchase/${instantPurchaseID}`,
-        null
-      )
-    );
-  }
-
   public putInstantPurchase(data: any) {
     return firstValueFrom(this.apiService.put(`instant-purchase`, data, null));
   }

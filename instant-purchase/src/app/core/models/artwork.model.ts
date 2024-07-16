@@ -1,5 +1,4 @@
 import { Blockchain } from './exhibition.model';
-import { Swap } from './swap.model';
 import { Series, SeriesDetail } from './series.model';
 import { BidAsk, BidAskDetail } from './transaction.model';
 import { User } from './user.model';
@@ -57,7 +56,6 @@ export interface Artwork {
   isArchived?: boolean;
   isExternal?: boolean;
   virgin?: boolean;
-  swap?: Swap;
   collectedAt?: string;
   createdAt?: string;
   updatedAt?: string;

@@ -29,7 +29,6 @@ import {
   SeriesDetail,
   Signature,
   SupportCurrencies,
-  UserDetail,
 } from '@core/models';
 import {
   CreditPurchaseState,
@@ -40,7 +39,6 @@ import {
   SeriesService,
   ShoppingService,
   TransactionService,
-  UserService,
 } from '@core/services';
 import {
   ExchangeRateService,
@@ -106,7 +104,6 @@ export class InstantPurchaseComponent {
   public Step = Step;
   public currentStep = Step.Collect;
   public PaymentMethod = PaymentMethods;
-  public user: UserDetail;
 
   public autonomyIRL = new AutonomyIRL();
   @ViewChild('paymentProcessingModal') paymentProcessingModal: ElementRef;
@@ -235,7 +232,6 @@ export class InstantPurchaseComponent {
   constructor(
     private transactionService: TransactionService,
     private shoppingService: ShoppingService,
-    private userService: UserService,
     private router: Router,
     private location: Location,
     private currencyService: CurrencyService,
@@ -316,7 +312,6 @@ export class InstantPurchaseComponent {
         await this.cancelBid();
       } catch (error) {
         console.log(error);
-        // Sentry.captureMessage('Payment: cancelBid error');
       }
     }
   }
@@ -332,7 +327,6 @@ export class InstantPurchaseComponent {
 
   ngOnChanges(change: SimpleChanges) {
     if (change?.['exhibition']?.currentValue) {
-      this.getRealIDOfMe();
       this.contractVersion = this.exhibition.contracts?.length
         ? this.exhibition.contracts[0].version
         : ContractVersion.V1;
@@ -1177,15 +1171,6 @@ export class InstantPurchaseComponent {
     }
   }
 
-  private getRealIDOfMe() {
-    this.me = this.userService.getMe();
-    if (this.me) {
-      if (this.me.type === Blockchain.Autonomy) {
-        this.me.ID = this.userService.getAddressByChain(this.targetBlockchain);
-      }
-    }
-  }
-
   public async validateRecipientInput(value: string) {
     this.inputRecipientForm.disable({ emitEvent: false });
     this.isEnteredADomain = false;
@@ -1745,9 +1730,6 @@ export class InstantPurchaseComponent {
 
   private async initData() {
     try {
-      this.getUser().catch((error) => {
-        console.log(error);
-      });
       this.quantity ||= 1;
 
       if (this.seriesID) {
@@ -1842,14 +1824,6 @@ export class InstantPurchaseComponent {
       }
     } catch (error) {
       window.alert(error);
-    }
-  }
-
-  private async getUser() {
-    try {
-      this.user = await this.userService.getUser(this.buyerAddress);
-    } catch (error) {
-      console.log(error);
     }
   }
 

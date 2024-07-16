@@ -13,7 +13,6 @@ import { BrowserProvider, JsonRpcProvider, Signer, formatUnits } from 'ethers';
 // import * as Sentry from '@sentry/angular-ivy';
 import { Subject } from 'rxjs';
 import { Blockchain } from '@core/models';
-import { Utils } from '@shared/utils';
 import { ETHEREUM_MAINNET, ETHEREUM_SEPOLIA } from '@shared/ethereum-chains';
 import { AppSetting } from '@shared/constants';
 
@@ -145,26 +144,6 @@ export class WalletConnectService {
       console.log('Send transaction error:', error);
       // Sentry.captureMessage('Wallet connect service: Can not send transaction');
       throw error;
-    }
-  }
-
-  public async getWCConnectedWalletName(type: Blockchain): Promise<WalletName> {
-    try {
-      if (type === Blockchain.Ethereum) {
-        if (!this.modal) {
-          await this.retrieveTools();
-        }
-
-        const walletName = this.modal?.getWalletInfo()?.name;
-        return walletName
-          ? (Utils.removeNonAsciiChars(walletName) as WalletName)
-          : WalletName.Unknown;
-      }
-
-      return WalletName.Unknown;
-    } catch (error) {
-      console.log(error);
-      return WalletName.Unknown;
     }
   }
 
