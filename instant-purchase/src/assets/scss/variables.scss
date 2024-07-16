@@ -1,0 +1,88 @@
+// color
+$primaryBlack: #333333;
+$secondaryBlack: #171717;
+$grey: #c4c4c4;
+$darkGrey: #4a4a4a;
+$disabledGrey: #999999;
+$backgroundGrey: #ededed;
+$textGrey: #a6a6a6;
+$lightGrey: #e3e3e3;
+$mediumGrey: #b7b7b7;
+$strokeGrey: #acacac;
+$auGrey: #a0a0a0;
+$inputBG: rgba(12, 29, 62, 0.05);
+$dropdownBG: rgba(85, 91, 255, 0.05);
+$white: #ffffff;
+$black: #000000;
+$lineColor: rgba(51, 51, 51, 0.2);
+$lineDarkModeColor: rgba(255, 255, 255, 0.2);
+$errorColor: #ff003c;
+$positiveGreen: #56c568;
+$yellow: #ecff0c;
+$lightBlue: #b9e5ff;
+$inactive: #999;
+
+// font-size
+$browser-base-font-size: 16px; // ~1em
+$tablet-base-font-size: 16px; // ~1em
+$mobile-base-font-size: 16px; // ~1em
+
+// responsive breakpoints
+$sm: 425px;
+$md: 768px;
+$lg: 1024px;
+$xl: 1400px;
+$xxl: 1824px;
+$xxxl: 2560px;
+
+// theme
+$theme-light: 'light';
+$theme-dark: 'dark';
+
+:root {
+  --headerHeight: 110px;
+  --mainContainerPadding: 40px;
+  --progressBarHeight: 100px;
+  --defaultPadding: 1.25rem;
+}
+
+@media all and (min-width: $md) and (max-width: $lg) {
+  :root {
+    --defaultPadding: 0.8rem;
+  }
+}
+
+@media all and (max-width: $md) {
+  :root {
+    --headerHeight: 80px;
+    --mainContainerPadding: 20px;
+    --progressBarHeight: 80px;
+    --defaultPadding: 0.625rem;
+  }
+}
+
+@mixin lighten() {
+  --bgColor: #{$white};
+  --textColor: #{$black};
+  --borderColor: #{$lightGrey};
+  --darkGrey: #{$darkGrey};
+
+  .hideOnLight {
+    display: none;
+  }
+
+  transition: all 200ms;
+}
+
+@mixin darken() {
+  --bgColor: #{$black};
+  --textColor: #{$white};
+  --borderColor: #{$darkGrey};
+  --darkGrey: #{$lightGrey};
+
+  .hideOnDark {
+    display: none;
+  }
+
+  transition: all 200ms;
+}
